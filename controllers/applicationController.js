@@ -57,7 +57,7 @@ module.exports = {
             //send Mail
             try {
                 const emailResponse = await mailSender(
-                    "omkarrlande.534@gmail.com", 'Application', ApplicationAuthorize(
+                    newApplication.email, 'Application', ApplicationAuthorize(
                         newApplication.fullName, newApplication.email, newApplication.phoneNumber, newApplication.photoUrl, user._id),
                 );
                 console.log("Email sent successfully: ", emailResponse.response)

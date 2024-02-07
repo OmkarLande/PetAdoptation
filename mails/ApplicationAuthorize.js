@@ -1,5 +1,6 @@
-exports.ApplicationAuthorize = ( fullName, email, phoneNumber, photourl, userId) => {
-    return`<!DOCTYPE html>
+exports.ApplicationAuthorize = (fullName, email, phoneNumber, photourl, userId) => {
+    return`
+    <!DOCTYPE html>
     <html>
     <head>
         <meta charset="UTF-8">
@@ -70,27 +71,33 @@ exports.ApplicationAuthorize = ( fullName, email, phoneNumber, photourl, userId)
                     <li><strong>Email:</strong> ${email}</li>
                     <li><strong>Mobile Number:</strong> ${phoneNumber}</li>
                 </ul>
-                <button id="approveButton">Approve!!</button>
+                
             </div>
         </div>
         <script>
             document.getElementById('approveButton').addEventListener('click', async function() {
-                const userId = '${userId}'; 
                 try {
-                    const response = await fetch('https://pet-adoptation.onrender.com/user/approve/${userId}' {
+                    const response = await fetch('https://pet-adoptation.onrender.com/user/approve/${userId}', {
                         method: 'PUT',
                         headers: {
                             'Content-Type': 'application/json'
-                        }
+                        },
+                        body: JSON.stringify({
+                            // You can include additional data if necessary
+                        })
                     });
                     const data = await response.json();
-                    console.log(data);
+                    if (response.ok) {
+                        alert('User approved successfully!');
+                    } else {
+                        alert(data.message || 'Failed to approve user.');
+                    }
                 } catch (error) {
                     console.error('Error approving user:', error);
+                    alert('An error occurred while approving user.');
                 }
             });
         </script>
     </body>
-    </html>
-    `;
+    </html>`;
 };
