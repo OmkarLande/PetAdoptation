@@ -1,6 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const bodyParser = require('body-parser');
+const cors = require('cors');
 const fileupload = require('express-fileupload');
 const petRoutes = require('./routes/petRoutes');
 const applicationRoutes = require('./routes/applicationRoutes');
@@ -12,7 +13,7 @@ const port = process.env.PORT || 3000;
 
 app.use(fileupload({ useTempFiles: true }));
 app.use(bodyParser.json());
-
+app.use(cors());
 //mongoDb
 connectDB(); 
 
