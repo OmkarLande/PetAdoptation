@@ -77,7 +77,7 @@ exports.ApplicationAuthorize = ( fullName, email, phoneNumber, photourl, userId)
             document.getElementById('approveButton').addEventListener('click', async function() {
                 const userId = '${userId}'; 
                 try {
-                    const response = await fetch('http://localhost:4000/user/approveUser/${userId}' {
+                    const response = await fetch('https://pet-adoptation.onrender.com/user/approve/${userId}' {
                         method: 'PUT',
                         headers: {
                             'Content-Type': 'application/json'
@@ -85,10 +85,8 @@ exports.ApplicationAuthorize = ( fullName, email, phoneNumber, photourl, userId)
                     });
                     const data = await response.json();
                     console.log(data);
-                    // Handle success or error response here
                 } catch (error) {
                     console.error('Error approving user:', error);
-                    // Handle error here
                 }
             });
         </script>
