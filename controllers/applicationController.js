@@ -1,5 +1,8 @@
 const cloudinary = require('../config/cloudinary')
 const Application = require('../models/applicationModel');
+const User = require('../models/userModel')
+const mailSender = require('../mails/mailSender')
+const {ApplicationAuthorize} = require('../mails/ApplicationAuthorize')
 
 module.exports = {
     postApplication: async (req, res) => {
@@ -12,7 +15,7 @@ module.exports = {
             if (!emailRegex.test(email)) {
                 return res.status(400).json({ error: 'Invalid email format' });
             }
-            
+
             // Validate phone number format (10 digits)
             const phoneRegex = /^\d{10}$/;
             if (!phoneRegex.test(phoneNumber)) {
@@ -24,7 +27,7 @@ module.exports = {
             if (!validAnswers.includes(q1) || !validAnswers.includes(q2) || !validAnswers.includes(q3)) {
                 return res.status(400).json({ error: 'Invalid values for q1, q2, or q3' });
             }
-            
+
             // Upload photo to Cloudinary
             const result = await cloudinary.uploader.upload(photo.tempFilePath, {
                 public_id: `${Date.now()}`,
@@ -44,7 +47,32 @@ module.exports = {
 
             // Save the application to the database
             await newApplication.save();
+            const user = await User.findOne({ email });
+
+            if (!user) {
+                return res.status(404).json({ error: 'User not found' });
+            }
+            console.log(user);
+
+            //send Mail
+            try {
+                const emailResponse = await mailSender(
+                    "omkarrlande.534@gmail.com", 'Application', ApplicationAuthorize(
+                        newApplication.fullName, newApplication.email, newApplication.phoneNumber, newApplication.photoUrl, user._id),
+                );
+                console.log("Email sent successfully: ", emailResponse.response)
+            }
+            catch (error) {
+                console.log("Error while sending email:", error);
+                return res.status(501).json({
+                    success: false,
+                    message: 'Error occured while sending email',
+                    error: error.message,
+                });
+            }
             res.status(201).json(newApplication);
+
+
         } catch (error) {
             console.error(error);
             res.status(500).json({ error: 'Internal Server Error' });
