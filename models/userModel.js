@@ -31,6 +31,9 @@ const userModel = new mongoose.Schema({
     approved: {
         type: Boolean,
         default: false,
+    },
+    otp:{
+        type: String
     }
 });
 

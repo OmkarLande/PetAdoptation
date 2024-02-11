@@ -7,6 +7,7 @@ const petRoutes = require('./routes/petRoutes');
 const applicationRoutes = require('./routes/applicationRoutes');
 const userRoutes = require('./routes/userRoutes')
 const connectDB = require('./config/db');
+const { forget_password } = require('./controllers/Auth');
 
 const app = express();
 const port = process.env.PORT || 3000;
