@@ -1,6 +1,8 @@
 const User = require('../models/userModel')
 const bcrypt = require('bcrypt')
 const jwt = require("jsonwebtoken");
+const otpGenerator = require("otp-generator");
+const mailSender = require('../mails/mailSender')
 
 
 exports.signUp = async(req, res) => {
@@ -136,4 +138,121 @@ exports.approveUser = async (req, res) => {
         console.error('Error approving user:', error);
         return res.status(500).json({ message: 'Internal server error' });
     }
+};
+
+exports.changePassword = async(req,res) =>{
+    try{
+        //fetchData
+        const { email, otp} = req.body;
+        const userDetails = await User.findOne({email});
+
+        //newPass confirmPass
+        const {newPassword, confirmPassword} = req.body;
+
+        
+        
+        if(otp != userDetails.otp){
+            //not matched
+            return res.status(402).json({
+                success:false,
+                message:'Otp is incorrect',
+            });
+        }
+
+        //newPass is same as confirmPass?
+        if(newPassword !== confirmPassword){
+            return res.status(400).json({
+                success:false,
+                message:"password is not matched with confirm password",
+            });
+        }
+        //update in DB
+        const encryptedPassword = await bcrypt.hash(newPassword, 10);
+        const updateUserDetails =await User.findByIdAndUpdate(
+            userDetails._id,
+            {password:encryptedPassword},
+            {new:true},
+        );
+        const body = "Your Password has been changed recently!!! Login to our website..."
+        //send Mail
+        try{
+            const emailResponse = await mailSender(
+                updateUserDetails.email,"Your Password Changed!", body  );
+                console.log("Email sent successfully: ", 
+                emailResponse.response);
+            }
+        catch(error){
+            console.log("Error while sending email:", error);
+            return res.status(500).json({
+                success:false,
+                message:'Error occured while sending email',
+                error:error.message,
+            });
+        }
+        return res.status(200).json({
+            success:true,
+            message:'Password changed',
+        });
+    }
+    catch(error){
+        console.log(error.message);
+        res.status(500).json({
+            success:false,
+            message:'Login Failed!',
+        });
+    }
+};
+
+exports.sendOTP = async (req, res) => {
+	try {
+		const { email } = req.body; 
+
+		// Check if user is already present
+		const checkUserPresent = await User.findOne({ email });
+
+		// If user found with provided email
+		if (!checkUserPresent) {
+			return res.status(401).json({
+				success: false,
+				message: `User is not Registered`,
+			});
+		}
+
+		var otp = otpGenerator.generate(4, {
+			upperCaseAlphabets: false,
+			lowerCaseAlphabets: false,
+			specialChars: false,
+		});
+		console.log("OTP", otp);
+        checkUserPresent.otp = otp;
+        await checkUserPresent.save();
+		
+
+        //send Mail
+        try {
+            const emailResponse = await mailSender(
+                checkUserPresent.email, 'OTP', otp,
+            );
+            console.log("Email sent successfully: ", emailResponse.response)
+        }
+        catch (error) {
+            console.log("Error while sending email:", error);
+            return res.status(501).json({
+                success: false,
+                message: 'Error occured while sending email',
+                error: error.message,
+            });
+        }
+		res.status(200).json({
+			success: true,
+			message: `OTP Sent Successfully`,
+			otp,
+		});
+	} catch (error) {
+		console.log(error.message);
+		return res.status(500).json({
+            success: false, 
+            error: error,
+        });
+	}
 };
