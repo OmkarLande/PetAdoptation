@@ -14,7 +14,7 @@ const port = process.env.PORT || 3000;
 
 app.use(fileupload({ useTempFiles: true }));
 app.use(bodyParser.json());
-app.use(cors());
+app.use(cors({ origin : '*'}));
 //mongoDb
 connectDB(); 
 
